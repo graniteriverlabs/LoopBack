@@ -131,6 +131,27 @@ namespace GrlC2ApiLib
         }
 
         /// <summary>
+        /// Strongly typed helper to extract VendorId and ProductId from deviceId.
+        /// </summary>
+        /// <param name="deviceId">Raw device identifier.</param>
+        /// <returns>Tuple (VendorId, ProductId)</returns>
+        public (int VendorId, int ProductId) GetVendorProductIds(string deviceId)
+        {
+            var dyn = GetLoopbackDeviceHardwareId(deviceId);
+            try
+            {
+                int vid = dyn.Item1;
+                int pid = dyn.Item2;
+                return (vid, pid);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to parse Vendor/Product IDs from '{deviceId}'", ex);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Starts the loopback test execution asynchronously and returns the underlying result object.
         /// </summary>
         /// <param name="vendorId">Vendor ID (VID) of the device.</param>
@@ -288,67 +309,14 @@ namespace GrlC2ApiLib
         /// </summary>
         public void Dispose()
         {
-            if (_loopBackService is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-            _isInitialized = false;
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion
 
         #region Helper Methods
 
-        /// <summary>
-        /// Formats test result into a human-readable string.
-        /// </summary>
-        /// <param name="result">Test result to format.</param>
-        /// <returns>Formatted string representation of the result.</returns>
-        public string FormatTestResult(LoopBackTestResult result)
-        {
-            if (result == null)
-                return "No result available.";
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"Test Status: {(result.IsSuccess ? "PASSED" : "FAILED")}");
-            sb.AppendLine($"Status Message: {result.Status}");
-
-            if (!string.IsNullOrEmpty(result.TransferredData))
-                sb.AppendLine($"Transferred Data: {result.TransferredData}");
-
-            if (!string.IsNullOrEmpty(result.ReceivedData))
-                sb.AppendLine($"Received Data: {result.ReceivedData}");
-
-            if (!string.IsNullOrEmpty(result.EffectiveThroughput))
-                sb.AppendLine($"Effective Throughput: {result.EffectiveThroughput}");
-
-            if (result.WriteThroughputKBps > 0)
-                sb.AppendLine($"Write Throughput: {result.WriteThroughputKBps:F2} KB/s");
-
-            if (result.ReadThroughputKBps > 0)
-                sb.AppendLine($"Read Throughput: {result.ReadThroughputKBps:F2} KB/s");
-
-            if (result.PassedBytes > 0)
-                sb.AppendLine($"Passed Bytes: {result.PassedBytes}");
-
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Gets a summary of batch test results.
-        /// </summary>
-        /// <param name="results">Dictionary of test results.</param>
-        /// <returns>Summary string with pass/fail counts.</returns>
-        public string GetBatchTestSummary(Dictionary<string, LoopBackTestResult> results)
-        {
-            if (results == null || !results.Any())
-                return "No test results available.";
-
-            int passed = results.Values.Count(r => r.IsSuccess);
-            int failed = results.Count - passed;
-
-            return $"Batch Test Summary: {passed} passed, {failed} failed out of {results.Count} total tests.";
-        }
 
         #endregion
 
@@ -375,15 +343,8 @@ namespace GrlC2ApiLib
             if (disposing)
             {
                 // Dispose managed resources
-                if (_loopBackService is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-
-                if (_logger is IDisposable loggerDisposable)
-                {
-                    loggerDisposable.Dispose();
-                }
+                if (_loopBackService is IDisposable disposable) disposable.Dispose();
+                if (_logger is IDisposable loggerDisposable) loggerDisposable.Dispose();
             }
 
             _disposed = true;
