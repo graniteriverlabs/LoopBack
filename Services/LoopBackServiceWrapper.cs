@@ -211,7 +211,10 @@ namespace GrlC2ApiLib
     {
         public void LogInformation(string message)
         {
-            Console.WriteLine($"[INFO] {message}");
+            if (message?.Length <= 200)
+            {
+                Console.WriteLine($"[INFO] {message}");
+            }
         }
 
         public void LogWarning(string message)

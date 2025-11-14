@@ -11,7 +11,7 @@ namespace LoopBack
         static async Task<int> Main(string[] args)
         {
             ConfigureLogging();
-            using var loopBackService = new GrlC2LoopBackService(new LoopBack.Services.SerilogLoggerService());
+            using var loopBackService = new GrlC2LoopBackService();
             var cli = new LoopBack.Cli.LoopBackCli(loopBackService);
             int code = await cli.RunAsync();
             Log.CloseAndFlush();
