@@ -73,22 +73,22 @@ LoopBack is a command-line interface (CLI) application designed to test USB-C lo
 
 The application follows a **layered architecture** pattern with clear separation of concerns:
 
-1. **Presentation Layer** (`Program.cs`)
+1. **Presentation Layer** (`src/LoopBack/Program.cs`)
    - Entry point and application bootstrapping
    - Logging configuration
    - Resource management
 
-2. **CLI Layer** (`Cli/`)
+2. **CLI Layer** (`src/LoopBack/Cli/`)
    - User interaction logic
    - Input validation
    - Output formatting
 
-3. **Service Layer** (`Services/`)
+3. **Service Layer** (`src/LoopBack/Services/`)
    - Business logic abstraction
    - Wrapper around external DLLs
    - Logging services
 
-4. **External Integration Layer** (`DLL/`)
+4. **External Integration Layer** (`lib/`)
    - Third-party DLL integration
    - Device communication protocols
 
@@ -96,25 +96,28 @@ The application follows a **layered architecture** pattern with clear separation
 
 ```
 LoopBack/
-├── Program.cs                          # Application entry point
+├── lib/                                # External dependencies
+│   ├── GRL.VDPWR.LoopBackService.dll   # Core loopback service
+│   └── GRL.Logging.dll                 # Logging interface
+│
 ├── LoopBack.csproj                     # Project configuration
 ├── LoopBack.sln                        # Solution file
 ├── README.md                           # Project documentation
 ├── ARCHITECTURE.md                     # This file
 │
-├── Cli/                                # CLI interaction layer
-│   └── LoopBackCli.cs                  # Interactive console interface
+├── docs/
+│   └── CONFIGURATION.md                # Configuration file notes
 │
-├── Services/                           # Service layer
-│   ├── LoopBackServiceWrapper.cs       # Main service wrapper
-│   └── SerilogLoggerService.cs         # Serilog implementation
-│
-├── ConfigFiles/                        # Configuration files
-│   └── LoopBackViewModelInfo.json      # Device configuration
-│
-├── DLL/                                # External dependencies
-│   ├── GRL.VDPWR.LoopBackService.dll   # Core loopback service
-│   └── GRL.Logging.dll                 # Logging interface
+├── src/
+│   └── LoopBack/
+│       ├── Program.cs                  # Application entry point
+│       ├── Cli/                        # CLI interaction layer
+│       │   └── LoopBackCli.cs          # Interactive console interface
+│       ├── Services/                   # Service layer
+│       │   ├── LoopBackServiceWrapper.cs
+│       │   └── SerilogLoggerService.cs
+│       └── ConfigFiles/                # Source configuration assets
+│           └── LoopBackViewModelInfo.json
 │
 ├── bin/                                # Build output
 └── obj/                                # Build intermediates

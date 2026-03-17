@@ -25,7 +25,7 @@ namespace GrlC2ApiLib
         #region Private Fields
         private readonly ILoopBackService _loopBackService;
         private readonly ILoggerService _logger;
-        private readonly string _configPath;
+        private readonly string? _configPath;
         private bool _isInitialized = false;
         private bool _disposed = false;
         #endregion
@@ -38,7 +38,7 @@ namespace GrlC2ApiLib
         /// <param name="configPath">Optional configuration path for device data. 
         /// If null, defaults to [AppDirectory]\ConfigFiles\
         /// Must contain LoopBackViewModelInfo.json file.</param>
-        public GrlC2LoopBackService(ILoggerService logger = null, string configPath = null)
+        public GrlC2LoopBackService(ILoggerService? logger = null, string? configPath = null)
         {
             try
             {

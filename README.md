@@ -65,7 +65,7 @@ dotnet build --configuration Release
 
 ### 4. Configuration File
 
-Ensure `ConfigFiles/LoopBackViewModelInfo.json` exists and contains proper device configuration:
+Ensure `src/LoopBack/ConfigFiles/LoopBackViewModelInfo.json` exists and contains proper device configuration:
 
 ```json
 {
@@ -79,7 +79,7 @@ Ensure `ConfigFiles/LoopBackViewModelInfo.json` exists and contains proper devic
 }
 ```
 
-The configuration file is automatically copied to the output directory during build.
+The configuration file is automatically copied to the output directory during build as `ConfigFiles/LoopBackViewModelInfo.json`.
 
 ## Usage
 
@@ -149,7 +149,9 @@ cd bin\Release\net8.0
 
 ### LoopBackViewModelInfo.json
 
-**Location**: `ConfigFiles/LoopBackViewModelInfo.json`
+**Source Location**: `src/LoopBack/ConfigFiles/LoopBackViewModelInfo.json`
+
+**Runtime Location**: `ConfigFiles/LoopBackViewModelInfo.json`
 
 **Purpose**: Maps USB Vendor/Product IDs to device names for recognition and display.
 
@@ -170,7 +172,7 @@ cd bin\Release\net8.0
 
 ### Logging Configuration
 
-Logging is configured in `Program.cs` using Serilog:
+Logging is configured in `src/LoopBack/Program.cs` using Serilog:
 
 ```csharp
 Log.Logger = new LoggerConfiguration()
@@ -249,10 +251,10 @@ For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md).
 ### Key Components
 
 ```
-Program.cs
+src/LoopBack/Program.cs
   └── LoopBackCli (User interaction)
         └── GrlC2LoopBackService (Service wrapper)
-              └── GRL.VDPWR.LoopBackService.dll (External DLL)
+        └── lib/GRL.VDPWR.LoopBackService.dll (External DLL)
                     └── LibUsbDotNet (USB communication)
 ```
 
@@ -262,15 +264,17 @@ Program.cs
 
 ```
 LoopBack/
-├── Program.cs                      # Application entry point
-├── Cli/
-│   └── LoopBackCli.cs             # CLI interface
-├── Services/
-│   ├── LoopBackServiceWrapper.cs  # Service abstraction
-│   └── SerilogLoggerService.cs    # Logging implementation
-├── ConfigFiles/
-│   └── LoopBackViewModelInfo.json # Device configuration
-└── DLL/                           # External dependencies
+├── lib/                           # External dependencies
+├── src/
+│   └── LoopBack/
+│       ├── Program.cs            # Application entry point
+│       ├── Cli/
+│       │   └── LoopBackCli.cs    # CLI interface
+│       ├── Services/
+│       │   ├── LoopBackServiceWrapper.cs
+│       │   └── SerilogLoggerService.cs
+│       └── ConfigFiles/
+│           └── LoopBackViewModelInfo.json
 ```
 
 ### Building from Source
@@ -334,7 +338,7 @@ Currently, data size and iterations are collected but not passed to the underlyi
 **Symptom**: Warning about missing config file
 
 **Solutions**:
-1. Ensure `ConfigFiles/LoopBackViewModelInfo.json` exists
+1. Ensure `src/LoopBack/ConfigFiles/LoopBackViewModelInfo.json` exists
 2. Verify build action is set to "Copy to Output Directory"
 3. Manually copy config file to output directory
 

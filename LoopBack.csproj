@@ -9,10 +9,10 @@
 
   <ItemGroup>
     <Reference Include="GRL.Logging">
-      <HintPath>DLL\GRL.Logging.dll</HintPath>
+      <HintPath>lib\GRL.Logging.dll</HintPath>
     </Reference>
     <Reference Include="GRL.VDPWR.LoopBackService">
-      <HintPath>DLL\GRL.VDPWR.LoopBackService.dll</HintPath>
+      <HintPath>lib\GRL.VDPWR.LoopBackService.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -23,7 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ConfigFiles\LoopBackViewModelInfo.json">
+    <None Include="src\LoopBack\ConfigFiles\LoopBackViewModelInfo.json">
+      <Link>ConfigFiles\LoopBackViewModelInfo.json</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

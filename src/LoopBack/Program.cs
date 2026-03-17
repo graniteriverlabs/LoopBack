@@ -1,4 +1,4 @@
-﻿using GRL.Logging;
+using GRL.Logging;
 using GRL.VDPWR.LoopBackService.Models;
 using GrlC2ApiLib;
 using Serilog;
