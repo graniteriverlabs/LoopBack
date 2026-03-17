@@ -296,7 +296,7 @@ namespace GRL.VDPWR.LoopBackService.Services
                                     // Log the GRLUSBDeviceType
                                     _logger.WriteLog($"GRLUSBDeviceType: {jsonData?.GRLUSBDeviceType}", LogType.Information);
 
-                                    string deviceSerialNo = usbDevice.Info.SerialString;
+                                    string deviceSerialNo = usbDevice.Info.SerialString ?? string.Empty;
                                     string deviceName = $"{regDevice.Name}_{deviceSerialNo}";
                                     string deviceID = $"VID_0x{usbDevice.Info.Descriptor.VendorID:X4} PID_0x{usbDevice.Info.Descriptor.ProductID:X4}";
 
@@ -332,10 +332,20 @@ namespace GRL.VDPWR.LoopBackService.Services
         private async Task<List<DeviceInfo>> LoadLinuxMacDevicesAsync()
         {
             var devices = new List<DeviceInfo>();
-            
+
+            string deviceType = "Loopback";
+            LoopBackViewModelInfo? jsonData = GetJsonContent();
+            if (!string.IsNullOrWhiteSpace(jsonData?.GRLUSBDeviceType))
+            {
+                deviceType = jsonData.GRLUSBDeviceType;
+            }
+
+            const string targetDeviceId = "227f:0005";
+            const string formattedDeviceId = "VID_0x227F PID_0x0005";
+
             bool isMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
             string command = isMac ? "system_profiler SPUSBDataType" : "lsusb";
-            
+
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = isMac ? "/bin/sh" : "/bin/bash",
@@ -358,12 +368,20 @@ namespace GRL.VDPWR.LoopBackService.Services
 
                 foreach (string line in output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    if (line.Contains("227f:0005", StringComparison.OrdinalIgnoreCase))
+                    if (line.Contains(targetDeviceId, StringComparison.OrdinalIgnoreCase))
                     {
+                        string deviceSerialNo = string.Empty;
+                        Match serialMatch = Regex.Match(line, @"(?:Serial\s*Number|SN)\s*[:=]\s*([A-Za-z0-9_\-\.]+)", RegexOptions.IgnoreCase);
+                        if (serialMatch.Success)
+                        {
+                            deviceSerialNo = serialMatch.Groups[1].Value;
+                        }
+
                         devices.Add(new DeviceInfo
                         {
-                            DeviceName = "GRL Loopback",
-                            DeviceID = "227f:0005"
+                            DeviceName = $"{deviceType}_{deviceSerialNo}",
+                            DeviceID = formattedDeviceId,
+                            DeviceSerialNo = deviceSerialNo
                         });
                     }
                 }
