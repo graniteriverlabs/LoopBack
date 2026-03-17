@@ -10,6 +10,7 @@ namespace LoopBack
     {
         static async Task<int> Main(string[] args)
         {
+            Console.Title = "GRL V-DPWR EPR LoopBack Test Utility";
             ConfigureLogging();
             using var loopBackService = new GrlC2LoopBackService();
             var cli = new LoopBack.Cli.LoopBackCli(loopBackService);

@@ -23,6 +23,7 @@ namespace LoopBack.Cli
         {
             try
             {
+                Console.WriteLine("Scanning LoopBack Devices");
                 var devices = await _service.GetLoopbackDevices();
                 if (devices == null || devices.Count == 0)
                 {

@@ -213,13 +213,13 @@ namespace GrlC2ApiLib
         {
             if (message?.Length <= 200)
             {
-                Console.WriteLine($"[INFO] {message}");
+                //Console.WriteLine($"[INFO] {message}");
             }
         }
 
         public void LogWarning(string message)
         {
-            Console.WriteLine($"[WARN] {message}");
+            //Console.WriteLine($"[WARN] {message}");
         }
 
         public void LogError(string message, Exception? ex = null)
