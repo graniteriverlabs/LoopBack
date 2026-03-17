@@ -271,8 +271,7 @@ LoopBack/
 │       ├── Cli/
 │       │   └── LoopBackCli.cs    # CLI interface
 │       ├── Services/
-│       │   ├── LoopBackServiceWrapper.cs
-│       │   └── SerilogLoggerService.cs
+│       │   └── LoopBackServiceWrapper.cs
 │       └── ConfigFiles/
 │           └── LoopBackViewModelInfo.json
 ```

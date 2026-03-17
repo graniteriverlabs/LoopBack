@@ -114,8 +114,7 @@ LoopBack/
 │       ├── Cli/                        # CLI interaction layer
 │       │   └── LoopBackCli.cs          # Interactive console interface
 │       ├── Services/                   # Service layer
-│       │   ├── LoopBackServiceWrapper.cs
-│       │   └── SerilogLoggerService.cs
+│       │   └── LoopBackServiceWrapper.cs
 │       └── ConfigFiles/                # Source configuration assets
 │           └── LoopBackViewModelInfo.json
 │
@@ -207,15 +206,6 @@ void Dispose()
 
 **Internal Components**:
 - `ConsoleLoggerService` - Fallback logger with 200-char limit on info logs
-
-### 4. SerilogLoggerService
-
-**Responsibility**: Structured logging implementation
-
-**Features**:
-- Implements `ILoggerService` interface
-- Delegates to Serilog static logger
-- Provides byte-to-hex string conversion utility
 
 ## Data Flow
 
@@ -341,8 +331,7 @@ public void Dispose()
 **Location**: `ILoggerService` implementations
 
 **Implementations**:
-- `ConsoleLoggerService` - Simple console output
-- `SerilogLoggerService` - Structured logging
+- `ConsoleLoggerService` - Simple console output (fallback, built into wrapper)
 
 ### 5. Template Method Pattern
 **Location**: `LoopBackCli.RunAsync()`

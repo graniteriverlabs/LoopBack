@@ -1,10 +1,11 @@
+using GRL.VDPWR.LoopBackService.Models;
+using GrlC2ApiLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using GRL.VDPWR.LoopBackService.Models;
-using GrlC2ApiLib;
 
 namespace LoopBack.Cli
 {
@@ -86,9 +87,7 @@ namespace LoopBack.Cli
         private async Task ExecuteForDeviceAsync(DeviceInfo device, CancellationToken ct)
         {
             Console.WriteLine($"\nSelected Device: {device.DeviceName}");
-            var hw = _service.GetLoopbackDeviceHardwareId(device.DeviceID);
-            int vendorId = hw.Item1;
-            int productId = hw.Item2;
+            var (vendorId, productId) = ResolveVendorProductId(device);
 
             int choice = PromptExecutionMode();
 
@@ -107,6 +106,45 @@ namespace LoopBack.Cli
             }
             Console.WriteLine("==============================");
 
+        }
+        private (int vendorId, int productId) ResolveVendorProductId(DeviceInfo device)
+        {
+            string deviceId = device.DeviceID ?? string.Empty;
+
+            // Linux path commonly reports IDs as "vvvv:pppp" (hex). Parse this first.
+            var linuxMatch = Regex.Match(deviceId, "(?i)\\b([0-9a-f]{4}):([0-9a-f]{4})\\b");
+            if (linuxMatch.Success)
+            {
+                int vendorId = Convert.ToInt32(linuxMatch.Groups[1].Value, 16);
+                int productId = Convert.ToInt32(linuxMatch.Groups[2].Value, 16);
+                return (vendorId, productId);
+            }
+
+            // Windows-style fallback: VID_XXXX and PID_XXXX.
+            var windowsMatch = Regex.Match(deviceId, "(?i)VID_([0-9a-f]{4}).*PID_([0-9a-f]{4})");
+            if (windowsMatch.Success)
+            {
+                int vendorId = Convert.ToInt32(windowsMatch.Groups[1].Value, 16);
+                int productId = Convert.ToInt32(windowsMatch.Groups[2].Value, 16);
+                return (vendorId, productId);
+            }
+
+            try
+            {
+                var hw = _service.GetLoopbackDeviceHardwareId(deviceId);
+                int vendorId = hw.Item1;
+                int productId = hw.Item2;
+                if (vendorId > 0 && productId > 0)
+                {
+                    return (vendorId, productId);
+                }
+            }
+            catch
+            {
+                // Fall through.
+            }
+
+            return (0, 0);
         }
 
         // Print only EffectiveThroughput, TransferredData, and ReceivedData

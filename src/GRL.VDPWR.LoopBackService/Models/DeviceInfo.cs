@@ -14,5 +14,7 @@ namespace GRL.VDPWR.LoopBackService.Models
         /// Device identifier string (typically "VID_0xXXXX PID_0xYYYY" format)
         /// </summary>
         public string DeviceID { get; set; } = string.Empty;
+        public string DeviceSerialNo { get; set; } = string.Empty;
+
     }
 }

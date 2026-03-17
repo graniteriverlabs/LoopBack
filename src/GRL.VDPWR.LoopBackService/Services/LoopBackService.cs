@@ -296,12 +296,13 @@ namespace GRL.VDPWR.LoopBackService.Services
                                     // Log the GRLUSBDeviceType
                                     _logger.WriteLog($"GRLUSBDeviceType: {jsonData?.GRLUSBDeviceType}", LogType.Information);
 
-                                    string deviceName = regDevice.Name;
+                                    string deviceSerialNo = usbDevice.Info.SerialString;
+                                    string deviceName = $"{regDevice.Name}_{deviceSerialNo}";
                                     string deviceID = $"VID_0x{usbDevice.Info.Descriptor.VendorID:X4} PID_0x{usbDevice.Info.Descriptor.ProductID:X4}";
 
                                     if (!string.IsNullOrEmpty(deviceName) && deviceName.IndexOf($"{jsonData?.GRLUSBDeviceType}", StringComparison.OrdinalIgnoreCase) >= 0)
                                     {
-                                        devices.Add(new DeviceInfo { DeviceName = deviceName, DeviceID = deviceID });
+                                        devices.Add(new DeviceInfo { DeviceName = deviceName, DeviceID = deviceID, DeviceSerialNo = deviceSerialNo });
                                     }
                                 }
                                 else
@@ -355,13 +356,6 @@ namespace GRL.VDPWR.LoopBackService.Services
                 string output = await process.StandardOutput.ReadToEndAsync();
                 process.WaitForExit();
 
-                //foreach (string line in output.Split(new[] { '\n' }))
-                //{
-                //    if (!string.IsNullOrWhiteSpace(line) && line.Contains("GRL USB-LoopBack Tester"))
-                //    {
-                //        devices.Add(new DeviceInfo { DeviceName = line.Trim(), DeviceID = line.Trim() });
-                //    }
-                //}
                 foreach (string line in output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
                 {
                     if (line.Contains("227f:0005", StringComparison.OrdinalIgnoreCase))
