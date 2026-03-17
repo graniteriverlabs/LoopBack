@@ -8,18 +8,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="GRL.Logging">
-      <HintPath>lib\GRL.Logging.dll</HintPath>
-    </Reference>
-    <Reference Include="GRL.VDPWR.LoopBackService">
-      <HintPath>lib\GRL.VDPWR.LoopBackService.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="src\GRL.Logging\GRL.Logging.csproj" />
+    <ProjectReference Include="src\GRL.VDPWR.LoopBackService\GRL.VDPWR.LoopBackService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="src\GRL.Logging\**\*.cs" />
+    <Compile Remove="src\GRL.Logging\obj\**\*.cs" />
+    <Compile Remove="src\GRL.VDPWR.LoopBackService\**\*.cs" />
+    <Compile Remove="src\GRL.VDPWR.LoopBackService\obj\**\*.cs" />
+    <EmbeddedResource Remove="src\GRL.Logging\**\*" />
+    <EmbeddedResource Remove="src\GRL.VDPWR.LoopBackService\**\*" />
+    <None Remove="src\GRL.Logging\**\*" />
+    <None Remove="src\GRL.VDPWR.LoopBackService\**\*" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
-    <PackageReference Include="Serilog" Version="2.12.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

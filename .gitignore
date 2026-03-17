@@ -1,3 +1,7 @@
 /.vs
 /bin
 /obj
+/src/GRL.Logging/obj
+/src/GRL.VDPWR.LoopBackService/obj
+/src/GRL.VDPWR.LoopBackService/bin
+/src/GRL.Logging/bin

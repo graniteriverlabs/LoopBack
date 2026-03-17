@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>GRL</Authors>
+    <Company>Granite River Labs</Company>
+    <Product>VDPWR LoopBack Service</Product>
+    <Description>USB LoopBack testing service compatible with .NET Framework 4.7.2+, .NET Core, and .NET 5+</Description>
+    <Version>2.0.0.4</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GRL.Logging\GRL.Logging.csproj" />
+  </ItemGroup>
+
+</Project>
