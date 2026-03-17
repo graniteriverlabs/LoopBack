@@ -38,11 +38,11 @@ namespace GRL.VDPWR.LoopBackService.Services
         public async Task<List<DeviceInfo>> LoadDevicesAsync()
         {
             var devices = new List<DeviceInfo>();
-            
+
             try
             {
                 _logger.WriteLog("Loopback Test Device scanning", LogType.Information);
-                
+
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     devices = await LoadWindowsDevicesAsync();
@@ -51,7 +51,7 @@ namespace GRL.VDPWR.LoopBackService.Services
                 {
                     devices = await LoadLinuxMacDevicesAsync();
                 }
-                
+
                 await Task.Delay(2000);
                 _logger.WriteLog($"Loopback Test Device scan completed. {devices.Count} device(s) found.", LogType.Information);
             }
@@ -59,7 +59,7 @@ namespace GRL.VDPWR.LoopBackService.Services
             {
                 _logger.WriteLog($"Error loading GRL USB-LoopBack Tester: {ex.Message}", LogType.Error);
             }
-            
+
             return devices;
         }
 
@@ -68,11 +68,11 @@ namespace GRL.VDPWR.LoopBackService.Services
         {
             var result = new LoopBackTestResult();
             UsbDevice? usbDevice = null;
-            
+
             try
             {
                 int maxPacketSize = 65536; // Buffer size for transfer
-                
+
                 // Find and open device
                 foreach (UsbRegistry regDevice in UsbDevice.AllDevices)
                 {
@@ -133,7 +133,7 @@ namespace GRL.VDPWR.LoopBackService.Services
 
                 // Execute the test loop
                 var testResults = await ExecuteTestLoop(usbDevice, writeBuffer, readBuffer, maxPacketSize);
-                
+
                 result.TransferredData = $"{testResults.TotalBytesWritten} Bytes";
                 result.ReceivedData = $"{testResults.PassCount} Bytes";
                 result.EffectiveThroughput = testResults.ThroughputMbps > 0 ? $"{testResults.ThroughputMbps:F2} Mbps" : "Error";
@@ -148,7 +148,7 @@ namespace GRL.VDPWR.LoopBackService.Services
                 _logger.WriteLog($"Write Throughput: {testResults.WriteThroughputKBps:F2} KB/s", LogType.Information);
                 _logger.WriteLog($"Read Throughput: {testResults.ReadThroughputKBps:F2} KB/s", LogType.Information);
                 _logger.WriteLog($"Failed Bytes: {testResults.FailCount}", LogType.Warning);
-                
+
             }
             catch (Exception ex)
             {
@@ -166,7 +166,7 @@ namespace GRL.VDPWR.LoopBackService.Services
                 }
                 usbDevice?.Close();
             }
-            
+
             return result;
         }
 
@@ -217,7 +217,7 @@ namespace GRL.VDPWR.LoopBackService.Services
                     {
                         totalBytesWritten += bytesWritten;
                     }
-                    
+
                     // Read from USB
                     ErrorCode readResult = reader.Read(readBuffer, 5000, out bytesRead);
                     int retryCount = 0;
@@ -246,14 +246,14 @@ namespace GRL.VDPWR.LoopBackService.Services
                         else
                             failCount++;
                     }
-                    
+
                     DateTime endTime = DateTime.Now;
                     elapsedTimeTicks.Add(Math.Abs(startTime.Ticks - endTime.Ticks));
                 }
             });
-            
+
             stopwatch.Stop();
-            
+
             double throughputMbps = 0;
             if (elapsedTimeTicks.Count > 0)
             {
@@ -275,7 +275,7 @@ namespace GRL.VDPWR.LoopBackService.Services
         private async Task<List<DeviceInfo>> LoadWindowsDevicesAsync()
         {
             var devices = new List<DeviceInfo>();
-            
+
             await Task.Run(() =>
             {
                 // Get all connected USB devices
@@ -368,14 +368,11 @@ namespace GRL.VDPWR.LoopBackService.Services
 
                 foreach (string line in output.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    if (line.Contains(targetDeviceId, StringComparison.OrdinalIgnoreCase))
+                    if (line.IndexOf(targetDeviceId, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        string deviceSerialNo = string.Empty;
-                        Match serialMatch = Regex.Match(line, @"(?:Serial\s*Number|SN)\s*[:=]\s*([A-Za-z0-9_\-\.]+)", RegexOptions.IgnoreCase);
-                        if (serialMatch.Success)
-                        {
-                            deviceSerialNo = serialMatch.Groups[1].Value;
-                        }
+                        string deviceSerialNo = isMac
+                            ? TryExtractSerialFromCommandOutput(line)
+                            : GetLinuxDeviceSerialNumber(line, targetDeviceId);
 
                         devices.Add(new DeviceInfo
                         {
@@ -388,6 +385,77 @@ namespace GRL.VDPWR.LoopBackService.Services
             }
 
             return devices;
+        }
+        private static string TryExtractSerialFromCommandOutput(string line)
+        {
+            Match serialMatch = Regex.Match(line, @"(?:Serial\s*Number|SN)\s*[:=]\s*([A-Za-z0-9_\-\.]+)", RegexOptions.IgnoreCase);
+            return serialMatch.Success ? serialMatch.Groups[1].Value : string.Empty;
+        }
+
+        private string GetLinuxDeviceSerialNumber(string lsusbLine, string targetDeviceId)
+        {
+            try
+            {
+                Match busDeviceMatch = Regex.Match(lsusbLine, @"Bus\s+(\d+)\s+Device\s+(\d+):", RegexOptions.IgnoreCase);
+                string[] idParts = targetDeviceId.Split(':');
+                if (idParts.Length != 2)
+                {
+                    return string.Empty;
+                }
+
+                string vendorId = idParts[0];
+                string productId = idParts[1];
+
+                foreach (string devicePath in Directory.EnumerateDirectories("/sys/bus/usb/devices"))
+                {
+                    string idVendorPath = Path.Combine(devicePath, "idVendor");
+                    string idProductPath = Path.Combine(devicePath, "idProduct");
+                    if (!File.Exists(idVendorPath) || !File.Exists(idProductPath))
+                    {
+                        continue;
+                    }
+
+                    string currentVendorId = File.ReadAllText(idVendorPath).Trim();
+                    string currentProductId = File.ReadAllText(idProductPath).Trim();
+                    if (!string.Equals(currentVendorId, vendorId, StringComparison.OrdinalIgnoreCase) ||
+                        !string.Equals(currentProductId, productId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (busDeviceMatch.Success)
+                    {
+                        string busNumPath = Path.Combine(devicePath, "busnum");
+                        string devNumPath = Path.Combine(devicePath, "devnum");
+                        if (!File.Exists(busNumPath) || !File.Exists(devNumPath))
+                        {
+                            continue;
+                        }
+
+                        string busNumber = int.Parse(File.ReadAllText(busNumPath).Trim()).ToString("D3");
+                        string deviceNumber = int.Parse(File.ReadAllText(devNumPath).Trim()).ToString("D3");
+                        if (!string.Equals(busNumber, busDeviceMatch.Groups[1].Value, StringComparison.Ordinal) ||
+                            !string.Equals(deviceNumber, busDeviceMatch.Groups[2].Value, StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+                    }
+
+                    string serialPath = Path.Combine(devicePath, "serial");
+                    if (File.Exists(serialPath))
+                    {
+                        return File.ReadAllText(serialPath).Trim();
+                    }
+
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.WriteLog($"Unable to read Linux USB serial number: {ex.Message}", LogType.Warning);
+            }
+
+            return string.Empty;
         }
 
         /// <summary>
@@ -430,7 +498,7 @@ namespace GRL.VDPWR.LoopBackService.Services
                 // Get the JSON content by calling GetJsonContent
                 LoopBackViewModelInfo? jsonData = GetJsonContent();
                 StringBuilder sb = new StringBuilder();
-                
+
                 if (jsonData != null)
                 {
                     // Check if LoopBackData is not null or empty
